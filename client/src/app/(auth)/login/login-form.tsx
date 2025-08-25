@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/app/components/ui/button'
 import {
   Form,
   FormControl,
@@ -10,13 +10,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+} from '@/app/components/ui/form'
+import { Input } from '@/app/components/ui/input'
 import { LoginBody, LoginBodyType } from '@/schemaValidations/auth.schema'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/app/components/ui/use-toast'
 import authApiRequest from '@/apiRequests/auth'
 import { useRouter } from 'next/navigation'
-import { handleErrorApi } from '@/lib/utils'
+import { handleErrorApi } from '@/app/lib/utils'
 import { useState } from 'react'
 import { useAppContext } from '@/app/app-provider'
 
@@ -73,7 +73,7 @@ const LoginForm = () => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='email' {...field} />
+                <Input placeholder='Nhập Email của bạn' type='email' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,7 +86,7 @@ const LoginForm = () => {
             <FormItem>
               <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='password' {...field} />
+                <Input placeholder='' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/app/components/ui/button'
 import {
   Form,
   FormControl,
@@ -10,11 +10,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/components/ui/use-toast'
+} from '@/app/components/ui/form'
+import { Input } from '@/app/components/ui/input'
+import { useToast } from '@/app/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
-import { handleErrorApi } from '@/lib/utils'
+import { handleErrorApi } from '@/app/lib/utils'
 import { useRef, useState } from 'react'
 import {
   CreateProductBody,
@@ -23,7 +23,7 @@ import {
   UpdateProductBodyType
 } from '@/schemaValidations/product.schema'
 import productApiRequest from '@/apiRequests/product'
-import { Textarea } from '@/components/ui/textarea'
+import { Textarea } from '@/app/components/ui/textarea'
 import Image from 'next/image'
 type Product = ProductResType['data']
 const ProductAddForm = ({ product }: { product?: Product }) => {

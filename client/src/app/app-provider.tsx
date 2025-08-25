@@ -1,5 +1,5 @@
 'use client'
-import { isClient } from '@/lib/http'
+import { isClient } from '@/app/lib/http'
 import { AccountResType } from '@/schemaValidations/account.schema'
 import {
   createContext,
@@ -17,7 +17,7 @@ const AppContext = createContext<{
   isAuthenticated: boolean
 }>({
   user: null,
-  setUser: () => {},
+  setUser: () => { },
   isAuthenticated: false
 })
 export const useAppContext = () => {

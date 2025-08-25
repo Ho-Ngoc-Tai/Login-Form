@@ -1,4 +1,4 @@
-import http from '@/lib/http'
+import http from '@/app/lib/http'
 import {
   LoginBodyType,
   LoginResType,

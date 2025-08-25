@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/app/components/ui/button'
 import { ProductResType } from '@/schemaValidations/product.schema'
 import {
   AlertDialog,
@@ -12,10 +12,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
+} from '@/app/components/ui/alert-dialog'
 import productApiRequest from '@/apiRequests/product'
-import { handleErrorApi } from '@/lib/utils'
-import { useToast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/app/lib/utils'
+import { useToast } from '@/app/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 
 export default function DeleteProduct({

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/app/components/theme-provider'
 import './globals.css'
-import { Toaster } from '@/components/ui/toaster'
+import { Toaster } from '@/app/components/ui/toaster'
 import AppProvider from '@/app/app-provider'
-import SlideSession from '@/components/slide-session'
+import SlideSession from '@/app/components/slide-session'
 import { baseOpenGraph } from '@/app/shared-metadata'
 // import dynamic from 'next/dynamic'
-import Header from '@/components/header'
+import Header from '@/app/components/header'
 // const Header = dynamic(() => import('@/components/header'), { ssr: false })
 const inter = Inter({ subsets: ['vietnamese'] })
 

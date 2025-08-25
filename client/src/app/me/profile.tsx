@@ -1,7 +1,7 @@
 'use client'
 
 import accountApiRequest from '@/apiRequests/account'
-import { handleErrorApi } from '@/lib/utils'
+import { handleErrorApi } from '@/app/lib/utils'
 import { useEffect } from 'react'
 
 export default function Profile() {
