@@ -13,55 +13,48 @@ import {
 } from '@/app/components/ui/form'
 import { Input } from '@/app/components/ui/input'
 import { RegisterBody, RegisterBodyType } from '@/schemaValidations/auth.schema'
-import authApiRequest from '@/apiRequests/auth'
 import { useToast } from '@/app/components/ui/use-toast'
-import { useRouter } from 'next/navigation'
-import { handleErrorApi } from '@/app/lib/utils'
 import { useState } from 'react'
-import { useAppContext } from '@/app/app-provider'
+import { mockAuth, RegisterResponse } from '@/app/mock/mockAuth'
 
 const RegisterForm = () => {
   const [loading, setLoading] = useState(false)
-  const { setUser } = useAppContext()
   const { toast } = useToast()
-  const router = useRouter()
 
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
     defaultValues: {
-      email: '',
       name: '',
+      email: '',
       password: '',
       confirmPassword: ''
     }
   })
 
-  // 2. Define a submit handler.
   async function onSubmit(values: RegisterBodyType) {
     if (loading) return
     setLoading(true)
+
     try {
-      const result = await authApiRequest.register(values)
+      const result: RegisterResponse = await mockAuth.register(values)
 
-      await authApiRequest.auth({
-        sessionToken: result.payload.data.token,
-        expiresAt: result.payload.data.expiresAt
-      })
-      toast({
-        description: result.payload.message
-      })
-      setUser(result.payload.data.account)
-
-      router.push('/me')
-    } catch (error: any) {
-      handleErrorApi({
-        error,
-        setError: form.setError
-      })
+      if (result.success) {
+        toast({
+          description: result.message
+        })
+        localStorage.setItem('user', JSON.stringify(result.data.account))
+        localStorage.setItem('token', result.data.token)
+      } else {
+        toast({
+          description: result.message,
+          variant: 'destructive'
+        })
+      }
     } finally {
       setLoading(false)
     }
   }
+
   return (
     <Form {...form}>
       <form
@@ -74,9 +67,9 @@ const RegisterForm = () => {
           name='name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tên</FormLabel>
+              <FormLabel>Họ và tên</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' {...field} />
+                <Input placeholder='Nhập họ và tên của bạn' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,7 +82,7 @@ const RegisterForm = () => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='email' {...field} />
+                <Input placeholder='Nhập email' type='email' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -102,7 +95,7 @@ const RegisterForm = () => {
             <FormItem>
               <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='password' {...field} />
+                <Input placeholder='' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,14 +108,15 @@ const RegisterForm = () => {
             <FormItem>
               <FormLabel>Nhập lại mật khẩu</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='password' {...field} />
+                <Input placeholder='' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <Button type='submit' className='!mt-8 w-full'>
-          Đăng ký
+          {loading ? 'Đang xử lý...' : 'Đăng ký'}
         </Button>
       </form>
     </Form>
