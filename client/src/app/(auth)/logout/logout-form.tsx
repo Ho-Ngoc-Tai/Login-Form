@@ -1,49 +1,70 @@
 'use client'
 
 import { useState } from 'react'
-import authApiRequest from '@/lib/auth-context'
-import { useAuth } from '@/lib/auth-context'
+import { useForm } from 'react-hook-form'
+import { mockAuth } from '@/app/mock/mockAuth'
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
+import { toast } from '@/app/components/ui/use-toast'
+
+interface LoginFormInputs {
+  email: string
+  password: string
+}
 
 export default function LoginForm() {
-    const { login } = useAuth()
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormInputs>()
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        try {
-            const res = await authApiRequest.login({ username, password })
-            // Giả sử backend trả về { accessToken, refreshToken, expiresAt }
-            login({ username }, res.data.accessToken, res.data.expiresAt)
-        } catch (err: any) {
-            setError(err?.message || 'Login failed')
-        }
+  const [serverError, setServerError] = useState<string | null>(null)
+
+  const onSubmit = async (data: LoginFormInputs) => {
+    setServerError(null)
+    try {
+      const response = await mockAuth.login(data)
+
+      if (response.success) {
+        toast({
+          title: 'Đăng nhập thành công',
+          description: `Xin chào, ${response.data.account.name}`
+        })
+        window.location.href = '/dashboard' // redirect sau login
+      } else {
+        setServerError(response.message)
+      }
+    } catch (error: any) {
+      setServerError('Đã có lỗi xảy ra, vui lòng thử lại')
     }
+  }
 
-    return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {error && <div className="text-red-500">{error}</div>}
-            <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="border p-2"
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="border p-2"
-            />
-            <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-                Login
-            </button>
-        </form>
-    )
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <Input
+          type="email"
+          placeholder="Email"
+          {...register('email', { required: 'Email không được để trống' })}
+        />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+      </div>
+      <div>
+        <Input
+          type="password"
+          placeholder="Mật khẩu"
+          {...register('password', { required: 'Mật khẩu không được để trống' })}
+        />
+        {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+      </div>
+
+      {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
+
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+      </Button>
+    </form>
+  )
 }

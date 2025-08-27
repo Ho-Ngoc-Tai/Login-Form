@@ -1,29 +1,37 @@
 'use client'
 
-import authApiRequest from '@/apiRequests/auth'
 import { useEffect } from 'react'
 import { differenceInHours } from 'date-fns'
+import { mockAuth } from '@/app/mock/mockAuth'
 
 export default function SlideSession() {
   useEffect(() => {
     const interval = setInterval(async () => {
       const now = new Date()
-      const sessionTokenExpiresAt = localStorage.getItem(
-        'sessionTokenExpiresAt'
-      )
-      const expiresAt = sessionTokenExpiresAt
-        ? new Date(sessionTokenExpiresAt)
-        : new Date()
+      const tokensStr = localStorage.getItem('tokens')
+      if (!tokensStr) return
+
+      const tokens = JSON.parse(tokensStr)
+      const expiresAt = new Date(tokens.accessTokenExpiresAt)
+
       if (differenceInHours(expiresAt, now) < 1) {
-        const res =
-          await authApiRequest.slideSessionFromNextClientToNextServer()
-        localStorage.setItem(
-          'sessionTokenExpiresAt',
-          res.payload.data.expiresAt
-        )
+        // refresh token
+        const refreshResult = await mockAuth.refreshToken()
+        if (refreshResult.success) {
+          tokens.accessToken = refreshResult.data.accessToken
+          tokens.accessTokenExpiresAt = refreshResult.data.accessTokenExpiresAt
+          localStorage.setItem('tokens', JSON.stringify(tokens))
+        } else {
+          // refresh thất bại → logout
+          localStorage.removeItem('tokens')
+          localStorage.removeItem('user')
+          window.location.href = '/login'
+        }
       }
-    }, 1000 * 60 * 30)
+    }, 1000 * 60 * 30) // 30 phút
+
     return () => clearInterval(interval)
   }, [])
+
   return null
 }

@@ -1,4 +1,5 @@
-// /app/mock/mockAuth.ts
+// client/src/app/mock/mockAuth.ts
+import Cookies from 'js-cookie'
 
 export type LoginBodyType = {
   email: string
@@ -15,11 +16,18 @@ const MOCK_USER: User = {
   email: 'demo@gmail.com'
 }
 
+type TokenData = {
+  accessToken: string
+  refreshToken: string
+  accessTokenExpiresAt: number
+  refreshTokenExpiresAt: number
+}
+
 type LoginSuccess = {
   success: true
   message: string
   data: {
-    token: string
+    tokens: TokenData
     account: User
   }
 }
@@ -27,26 +35,50 @@ type LoginSuccess = {
 type LoginFail = {
   success: false
   message: string
-  data?: undefined
 }
 
 export type LoginResponse = LoginSuccess | LoginFail
+
+const ACCESS_TOKEN_TTL = 10 * 1000 // 10s
+const REFRESH_TOKEN_TTL = 60 * 1000 // 60s
+
+const COOKIE_OPTIONS = {
+  secure: false, // true nếu deploy https
+  sameSite: 'lax' as const,
+  path: '/'
+}
 
 export const mockAuth = {
   async login(values: LoginBodyType): Promise<LoginResponse> {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     if (values.email === MOCK_USER.email && values.password === '123123') {
-      const token = 'fake-token-123'
+      const now = Date.now()
+      const tokens: TokenData = {
+        accessToken: 'fake-access-' + Math.random().toString(36).slice(2),
+        refreshToken: 'fake-refresh-' + Math.random().toString(36).slice(2),
+        accessTokenExpiresAt: now + ACCESS_TOKEN_TTL,
+        refreshTokenExpiresAt: now + REFRESH_TOKEN_TTL
+      }
 
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(MOCK_USER))
+      // Lưu cookie thay vì localStorage
+      Cookies.set('accessToken', tokens.accessToken, {
+        ...COOKIE_OPTIONS,
+        expires: tokens.accessTokenExpiresAt / 1000 / 60 / 60 / 24 // convert ms -> days
+      })
+      Cookies.set('refreshToken', tokens.refreshToken, {
+        ...COOKIE_OPTIONS,
+        expires: tokens.refreshTokenExpiresAt / 1000 / 60 / 60 / 24
+      })
+      Cookies.set('accessTokenExpiresAt', tokens.accessTokenExpiresAt.toString(), COOKIE_OPTIONS)
+      Cookies.set('refreshTokenExpiresAt', tokens.refreshTokenExpiresAt.toString(), COOKIE_OPTIONS)
+      Cookies.set('user', JSON.stringify(MOCK_USER), COOKIE_OPTIONS)
 
       return {
         success: true,
         message: 'Đăng nhập thành công (mock)',
         data: {
-          token,
+          tokens,
           account: MOCK_USER
         }
       }
@@ -60,8 +92,11 @@ export const mockAuth = {
 
   async logout() {
     await new Promise((resolve) => setTimeout(resolve, 300))
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    Cookies.remove('accessToken', COOKIE_OPTIONS)
+    Cookies.remove('refreshToken', COOKIE_OPTIONS)
+    Cookies.remove('accessTokenExpiresAt', COOKIE_OPTIONS)
+    Cookies.remove('refreshTokenExpiresAt', COOKIE_OPTIONS)
+    Cookies.remove('user', COOKIE_OPTIONS)
 
     return {
       success: true,
@@ -72,19 +107,69 @@ export const mockAuth = {
   async getProfile() {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    const token = localStorage.getItem('token')
-    const userStr = localStorage.getItem('user')
+    const accessToken = Cookies.get('accessToken')
+    const accessTokenExpiresAt = Number(Cookies.get('accessTokenExpiresAt'))
+    const userStr = Cookies.get('user')
 
-    if (token && userStr) {
-      return {
-        success: true as const,
-        data: JSON.parse(userStr) as User
-      }
+    if (!accessToken || !userStr) {
+      return { success: false as const, status: 401, message: 'Chưa đăng nhập' }
+    }
+
+    if (Date.now() > accessTokenExpiresAt) {
+      return { success: false as const, status: 401, message: 'Access token expired' }
     }
 
     return {
-      success: false as const,
-      message: 'Chưa đăng nhập'
+      success: true as const,
+      data: JSON.parse(userStr) as User
+    }
+  },
+
+  async refreshToken() {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const refreshToken = Cookies.get('refreshToken')
+    const refreshTokenExpiresAt = Number(Cookies.get('refreshTokenExpiresAt'))
+
+    if (!refreshToken) {
+      return { success: false as const, status: 401, message: 'Không có refresh token' }
+    }
+
+    if (Date.now() > refreshTokenExpiresAt) {
+      return { success: false as const, status: 401, message: 'Refresh token expired' }
+    }
+
+    const now = Date.now()
+    const newAccessToken = 'fake-access-' + Math.random().toString(36).slice(2)
+    const newAccessTokenExpiresAt = now + ACCESS_TOKEN_TTL
+
+    Cookies.set('accessToken', newAccessToken, {
+      ...COOKIE_OPTIONS,
+      expires: newAccessTokenExpiresAt / 1000 / 60 / 60 / 24
+    })
+    Cookies.set('accessTokenExpiresAt', newAccessTokenExpiresAt.toString(), COOKIE_OPTIONS)
+
+    return {
+      success: true as const,
+      data: {
+        accessToken: newAccessToken,
+        accessTokenExpiresAt: newAccessTokenExpiresAt
+      }
+    }
+  },
+
+  getTokens(): TokenData | null {
+    const accessToken = Cookies.get('accessToken')
+    const refreshToken = Cookies.get('refreshToken')
+    const accessTokenExpiresAt = Number(Cookies.get('accessTokenExpiresAt'))
+    const refreshTokenExpiresAt = Number(Cookies.get('refreshTokenExpiresAt'))
+
+    if (!accessToken || !refreshToken) return null
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt
     }
   }
 }

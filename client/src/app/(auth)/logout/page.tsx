@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import LogoutForm from '@/app/components/LogoutForm'  // chỗ bạn lưu file
+import LogoutForm from './logout-form'
 
 export default function LogoutPage() {
   return (
