@@ -45,6 +45,13 @@ export default function LoginForm() {
     readCookies()
   }, [])
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      readCookies()
+    }, 1000)
+    return () => clearInterval(id)
+  }, [])
+
   const onSubmit = async (data: LoginFormInputs) => {
     setServerError(null)
     try {
@@ -90,7 +97,6 @@ export default function LoginForm() {
         {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </Button>
 
-      {/* Debug panel: chỉ phục vụ demo token - không thêm file mới */}
       <div className="mt-6 border rounded-md p-3">
         <div className="flex items-center justify-between">
           <p className="font-medium">Debug Token (Demo)</p>
